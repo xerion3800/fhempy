@@ -18,7 +18,7 @@ class meross(FhemModule):
         await super().Define(hash, args, argsh)
         if len(args) < 5:
             return (
-                "Usage: define meross_integration PythonModule meross"
+                "Usage: define meross_integration fhempy meross"
                 " setup <USERNAME> <PASSWORD>"
             )
 
@@ -34,6 +34,24 @@ class meross(FhemModule):
 
     async def set_off(self, hash, params):
         self.create_async_task(self.device.set_off(hash, params))
+
+    async def set_toggle(self, hash, params):
+        self.create_async_task(self.device.set_toggle(hash, params))
+
+    async def set_open(self, hash, params):
+        self.create_async_task(self.device.set_open(hash, params))
+
+    async def set_close(self, hash, params):
+        self.create_async_task(self.device.set_close(hash, params))
+
+    async def set_rgb(self, hash, params):
+        self.create_async_task(self.device.set_rgb(hash, params))
+
+    async def set_brightness(self, hash, params):
+        self.create_async_task(self.device.set_brightness(hash, params))
+
+    async def set_ct(self, hash, params):
+        self.create_async_task(self.device.set_ct(hash, params))
 
     @property
     def meross_device(self):

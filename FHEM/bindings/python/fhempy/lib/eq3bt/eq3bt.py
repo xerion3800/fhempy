@@ -9,13 +9,13 @@ from enum import IntEnum
 from dbus import DBusException
 
 from .. import fhem, utils
-from ..generic import FhemModule
+from .. import generic
 from . import eq3btsmart as eq3
 from .connection import BTLEConnection
 
 
 class Mode(IntEnum):
-    """ Thermostat modes. """
+    """Thermostat modes."""
 
     Unknown = -1
     Closed = 0
@@ -30,7 +30,7 @@ class Mode(IntEnum):
 # TODO set windowOpen, windowOpenTime, eco/comfortTemperature
 
 
-class eq3bt(FhemModule):
+class eq3bt(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
 
@@ -101,7 +101,7 @@ class eq3bt(FhemModule):
         await super().Define(hash, args, argsh)
         self.hash = hash
         if len(args) < 4:
-            return "Usage: define eq3_livingroom PythonModule eq3bt <MAC>"
+            return "Usage: define eq3_livingroom fhempy eq3bt <MAC>"
         self._mac = args[3]
         self.hash["MAC"] = self._mac
         self.logger.info(f"Define: eq3bt {self._mac}")

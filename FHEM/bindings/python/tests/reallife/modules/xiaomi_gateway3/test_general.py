@@ -25,14 +25,14 @@ async def test_general(mocker):
     mock_fhem.mock_module(mocker)
     mocker.patch("socket.socket.connect_ex", return_value=0)
 
-    testhash = {"NAME": "testdevice"}
+    testhash = {"NAME": "testdevice", "FHEMPYTYPE": "testtype"}
     logger = logging.getLogger(__name__)
     xg_module = xiaomi_gateway3(logger)
     await xg_module.Define(
         testhash,
         [
             "testdevice",
-            "PythonModule",
+            "fhempy",
             "xiaomi_gateway3",
             os.environ["XIAOMI_GATEWAY3_IP"],
             os.environ["XIAOMI_GATEWAY3_TOKEN"],
@@ -50,7 +50,7 @@ async def test_general(mocker):
     assert (
         mock_fhem.command_define.index(
             f"lumigatewaymgl03_0x{os.environ['XIAOMI_GATEWAY3_MAC']} "
-            f"PythonModule xiaomi_gateway3_device testdevice "
+            f"fhempy xiaomi_gateway3_device testdevice "
             f"lumi.0x{os.environ['XIAOMI_GATEWAY3_MAC']}"
         )
         > -1

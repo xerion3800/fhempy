@@ -1,5 +1,11 @@
 import asyncio
+import inspect
 import json
+import os
+import markdown
+import functools
+
+from fhempy.lib import fhem
 
 from . import utils
 
@@ -11,6 +17,7 @@ class FhemModule:
         self._tasks = []
         self._conf_set = {}
         self._conf_attr = {}
+        self.readme_str = None
 
     def set_attr_config(self, attr_config):
         self._conf_attr = attr_config
@@ -22,7 +29,22 @@ class FhemModule:
     async def FW_detailFn(self, hash, args, argsh):
         (FW_wname, d, room, pageHash) = args
         ret = """<script type="text/javascript">
+        function displayHelp() {
+          var x = document.getElementById("fhempyReadme");
+          if (x.style.display === "none") {
+            x.style.display = "block";
+          } else {
+            x.style.display = "none";
+          }
+          var off = $("#fhempyReadme").position().top-20;
+          $('body, html').animate({scrollTop:off}, 500);
+        }
+        
         $(document).ready(function() {
+          $("#content").append('<div class="makeTable help" id="fhempyReadme"></div>');
+          $("#fhempyReadme").html(`###README_HELP_STRING###`);
+          document.getElementById("fhempyReadme").style.display = "none";
+
           var helpCmdStr = '###SET_CMD_CONFIG_STRING###';
           var helpCmdJson = JSON.parse(helpCmdStr);
           $("select.set").change(helpSetAction);
@@ -58,6 +80,10 @@ class FhemModule:
             }
           }
           helpAttrAction();
+
+          var helpLink = document.getElementById("content")
+            .getElementsByClassName("detLink devSpecHelp");
+          helpLink[0].innerHTML = '<div class="detLink devSpecHelp"><a href="#" onclick="displayHelp();return false;">Device specific help</a></div>';
         });
         </script>"""
         js_set_conf = {}
@@ -78,11 +104,49 @@ class FhemModule:
             "###ATTR_CONFIG_STRING###",
             json.dumps(js_attr_conf),
         )
+
+        # add readme as help
+        if self.readme_str is not None:
+            ret = ret.replace("###README_HELP_STRING###", self.readme_str)
+
         return ret
+
+    def _get_readme_content(self):
+        from fhempy import lib
+
+        initfile = inspect.getfile(lib)
+        fhempy_root = os.path.dirname(initfile)
+        try:
+            readme_md = ""
+            with open(
+                fhempy_root + "/" + self.hash["FHEMPYTYPE"] + "/README.md", "r"
+            ) as f:
+                readme_md = f.read()
+
+            readme_str = markdown.markdown(readme_md)
+            return readme_str
+            # make_html_images_inline(
+            #    readme_str, fhempy_root + "/" + self.hash["FHEMPYTYPE"] + "/"
+            # )
+
+        except FileNotFoundError:
+            return f"No README.md file found for {self.hash['FHEMPYTYPE']}."
 
     # FHEM FUNCTION
     async def Define(self, hash, args, argsh):
         self.hash = hash
+        check_init_done = await fhem.init_done(self.hash)
+        if check_init_done == 1:
+            if await fhem.AttrVal(self.hash["NAME"], "room", "") == "":
+                await fhem.CommandAttr(self.hash, f"{self.hash['NAME']} room fhempy")
+            if await fhem.AttrVal(self.hash["NAME"], "group", "") == "":
+                await fhem.CommandAttr(
+                    self.hash,
+                    (f"{self.hash['NAME']} group " f"{self.hash['FHEMPYTYPE']}"),
+                )
+        self.readme_str = await utils.run_blocking(
+            functools.partial(self._get_readme_content)
+        )
         await utils.handle_define_attr(self._conf_attr, self, hash)
 
     # FHEM FUNCTION

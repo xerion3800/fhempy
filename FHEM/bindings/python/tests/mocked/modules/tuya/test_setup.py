@@ -40,7 +40,7 @@ def mock_tuya_requests():
 async def test_setup(mocker):
     # prepare
     mock_fhem.mock_module(mocker)
-    testhash = {"NAME": "testdevice"}
+    testhash = {"NAME": "testdevice", "FHEMPYTYPE": "tuya"}
     await check_and_install_dependencies("tuya")
     from fhempy.lib.tuya.tuya import tuya
 
@@ -55,7 +55,7 @@ async def test_setup(mocker):
         testhash,
         [
             "testdevice",
-            "PythonModule",
+            "fhempy",
             "tuya",
             "setup",
             "12345678123456",

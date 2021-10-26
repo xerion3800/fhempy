@@ -5,7 +5,6 @@ import json
 import logging
 import threading
 import time
-import urllib.request
 from urllib.parse import parse_qs, urlparse
 
 import aiohttp
@@ -15,7 +14,7 @@ import pychromecast
 
 # DashCast
 import pychromecast.controllers.dashcast as dashcast
-import requests
+from requests import Session
 
 # youtube_dl
 import youtube_dl
@@ -24,7 +23,7 @@ import youtube_dl
 from pychromecast.controllers.bubbleupnp import BubbleUPNPController
 
 # Spotify
-from pychromecast.controllers.spotify import SpotifyController
+from .spotcast.spotify_controller import SpotifyController
 import spotipy
 from spotipy.oauth2 import CacheFileHandler
 
@@ -32,12 +31,13 @@ from spotipy.oauth2 import CacheFileHandler
 from pychromecast.controllers.youtube import YouTubeController
 
 from .. import fhem, utils
-from ..generic import FhemModule
+from .. import generic
+from ..core.zeroconf import zeroconf
 
 connection_update_lock = threading.Lock()
 
 
-class googlecast(FhemModule):
+class googlecast(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
         # do only error logging for pychromecast library
@@ -133,7 +133,7 @@ class googlecast(FhemModule):
         if len(args) > 3:
             hash["CASTNAME"] = args[3]
         else:
-            return 'Usage: define my_fhempy_cast PythonModule googlecast "Living Room"'
+            return 'Usage: define my_fhempy_cast fhempy googlecast "Living Room"'
 
         if self.browser:
             self.browser.stop_discovery()
@@ -147,17 +147,18 @@ class googlecast(FhemModule):
         await self.set_auth_url()
         self.create_async_task(self.connect_spotipy())
 
-        self.startDiscovery()
+        utils.run_blocking_task(functools.partial(self.startDiscovery))
 
     # FHEM FUNCTION
     async def Undefine(self, hash):
         await super().Undefine(hash)
         try:
-            self.browser.stop_discovery()
+            if self.browser:
+                self.browser.stop_discovery()
             if self.cast:
-                self.cast.disconnect()
+                utils.run_blocking_task(functools.partial(self.cast.disconnect))
         except Exception:
-            pass
+            self.logger.exception("Failed to undefine googlecast")
 
     async def set_auth_url(self):
         spotipy_scope = (
@@ -369,31 +370,34 @@ class googlecast(FhemModule):
             )
 
     def start_session(self, dc=None, key=None):
-        """ Starts session to get access token. """
+        """Starts session to get access token."""
         USER_AGENT = (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_2) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.132 Safari/537.36"
         )
 
-        session = requests.Session()
+        session = Session()
 
         cookies = {"sp_dc": dc, "sp_key": key}
         headers = {"user-agent": USER_AGENT}
 
-        response = session.get(
-            "https://open.spotify.com/get_access_token?"
-            + "reason=transport&productType=web_player",
-            headers=headers,
-            cookies=cookies,
-        )
-        response.raise_for_status()
-        data = response.content.decode("utf-8")
-        config = json.loads(data)
+        try:
+            response = session.get(
+                "https://open.spotify.com/get_access_token?"
+                + "reason=transport&productType=web_player",
+                headers=headers,
+                cookies=cookies,
+            )
+            response.raise_for_status()
+            data = response.content.decode("utf-8")
+            config = json.loads(data)
 
-        access_token = config["accessToken"]
-        expires_timestamp = config["accessTokenExpirationTimestampMs"]
-        expiration_date = int(expires_timestamp) // 1000
-        return access_token, expiration_date
+            access_token = config["accessToken"]
+            expires_timestamp = config["accessTokenExpirationTimestampMs"]
+            expiration_date = int(expires_timestamp) // 1000
+            return access_token, expiration_date
+        except Exception:
+            return None
 
     async def update_token(self):
         if self._attr_spotify_sp_dc != "" and self._attr_spotify_sp_key != "":
@@ -404,6 +408,12 @@ class googlecast(FhemModule):
                     self._attr_spotify_sp_key,
                 )
             )
+            if data == None:
+                await fhem.readingsSingleUpdate(
+                    self.hash, "spotify_user", "sp_dc/sp_key update required", 1
+                )
+                return
+
             self.spotify_access_token = data[0]
             self.spotify_expires = data[1] - int(time.time())
             self.spotify = spotipy.Spotify(auth=self.spotify_access_token)
@@ -560,25 +570,34 @@ class googlecast(FhemModule):
         return None
 
     def startDiscovery(self):
-        def castFound(chromecast):
-            if chromecast.name == self.hash["CASTNAME"] and self.cast is None:
-                self.logger.info("Discovered cast: " + chromecast.name)
-                self.cast = chromecast
+        self.logger.debug("Start discovery")
+        zc = zeroconf.get_instance(self.logger).get_zeroconf()
+        while True:
+            (
+                chromecasts,
+                self.browser,
+            ) = pychromecast.discovery.discover_listed_chromecasts(
+                friendly_names=[self.hash["CASTNAME"]], zeroconf_instance=zc
+            )
+            try:
+                self.browser.stop_discovery()
+            except asyncio.TimeoutError:
+                pass
+            self.browser = None
+
+            if len(chromecasts) > 0:
+                self.cast = pychromecast.get_chromecast_from_cast_info(
+                    chromecasts[0], zconf=zc
+                )
                 # add status listener
                 self.cast.register_connection_listener(self)
                 self.cast.register_status_listener(self)
                 # add media controller listener
                 self.cast.media_controller.register_status_listener(self)
-                self.logger.debug("wait for chromecast")
-                # timeout 0.001 just waits for status to be ready
-                # but we just need the thread to start by calling wait()
                 self.cast.wait(0.001)
-                self.logger.debug("wait finished")
-
-        self.logger.debug("Start discovery")
-        self.browser = pychromecast.get_chromecasts(
-            blocking=False, tries=None, retry_wait=5, timeout=5, callback=castFound
-        )
+                break
+            else:
+                time.sleep(10)
 
     # THREADING: this function is called by run_once pychromecast thread
     def new_connection_status(self, status):

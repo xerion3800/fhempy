@@ -4,12 +4,12 @@ import asyncio
 import functools
 
 from .. import fhem, utils
-from ..generic import FhemModule
+from .. import generic
 
 from pyvaillant import ClientAuth, VaillantThermostatData
 
 
-class erelax_vaillant(FhemModule):
+class erelax_vaillant(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
 
@@ -43,6 +43,14 @@ class erelax_vaillant(FhemModule):
                 "args": ["temperature"],
                 "options": "slider,7,0.5,30",
             },
+            "desiredTemperatureDuration": {
+                "args": ["temperature", "duration"],
+                "params": {"duration": {"format": "int"}},
+                "help": (
+                    "Set temperature for a specific duration in minutes<br>"
+                    "set vaillant TEMPERATURE DURATION"
+                ),
+            },
             "system_mode": {
                 "args": ["mode"],
                 "argsh": ["mode"],
@@ -55,9 +63,7 @@ class erelax_vaillant(FhemModule):
     async def Define(self, hash, args, argsh):
         await super().Define(hash, args, argsh)
         if len(args) < 4:
-            return (
-                "Usage: define erelax_vaillant PythonModule USERNAME PASSWORD [STATION]"
-            )
+            return "Usage: define erelax_vaillant fhempy USERNAME PASSWORD [STATION]"
         await fhem.readingsSingleUpdate(hash, "state", "connecting", 1)
         self.create_async_task(self.do_update_loop(args[3], args[4]))
 
@@ -70,6 +76,13 @@ class erelax_vaillant(FhemModule):
     async def set_desiredTemperature(self, hash, params):
         self.create_async_task(
             self.v_station.get_modules()[0].set_setpoint_temp(params["temperature"])
+        )
+
+    async def set_desiredTemperatureDuration(self, hash, params):
+        self.create_async_task(
+            self.v_station.get_modules()[0].set_setpoint_temp(
+                params["temperature"], params["duration"]
+            )
         )
 
     async def set_system_mode(self, hash, params):
@@ -449,10 +462,12 @@ class VaillantModule:
             return 0.0
         return self.raw_module["measured"]["setpoint_temp"]
 
-    async def set_setpoint_temp(self, temp):
+    async def set_setpoint_temp(self, temp, duration=None):
         try:
             await utils.run_blocking_task(
-                functools.partial(self.station.vaillant.activate, "manual", temp)
+                functools.partial(
+                    self.station.vaillant.activate, "manual", temp, duration * 60
+                )
             )
             # wait for update at netatmo
             await asyncio.sleep(1)

@@ -2,13 +2,13 @@ import asyncio
 
 from .. import fhem
 from .. import fhem_pythonbinding as fhepy
-from ..generic import FhemModule
+from .. import generic
 
 # imports for dynamical usage, do NOT remove
 from .devices.gateway import Gateway  # noqa: F401
-from .devices.sensor import (
+from .devices.sensor import (  # noqa: F401
     ContactSensor,
-    HTSensor,  # noqa: F401
+    HTSensor,
     MotionSensor,
     WaterLeakSensor,
 )
@@ -26,7 +26,7 @@ device_type_mapping = {
 }
 
 
-class xiaomi_gateway3_device(FhemModule):
+class xiaomi_gateway3_device(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
         self._fhempy_gateway = None
@@ -39,7 +39,7 @@ class xiaomi_gateway3_device(FhemModule):
 
         if len(args) < 5:
             return (
-                "Usage: define devname PythonModule xiaomi_gateway3_device"
+                "Usage: define devname fhempy xiaomi_gateway3_device"
                 " <GATEWAY_NAME> <DID>"
             )
 
@@ -114,6 +114,8 @@ class xiaomi_gateway3_device(FhemModule):
         return await self._fhempy_device.Set(hash, args, argsh)
 
     async def Attr(self, hash, args, argsh):
+        if self._fhempy_device is None:
+            return await super().Attr(hash, args, argsh)
         return await self._fhempy_device.Attr(hash, args, argsh)
 
     async def Undefine(self, hash):

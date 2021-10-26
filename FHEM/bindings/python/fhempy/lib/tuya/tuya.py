@@ -8,11 +8,11 @@ import tinytuya
 from tinytuya import wizard as tt_wizard
 
 from .. import fhem, utils
-from ..generic import FhemModule
+from .. import generic
 from . import mappings
 
 
-class tuya(FhemModule):
+class tuya(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
         self.tt_device = None
@@ -26,7 +26,7 @@ class tuya(FhemModule):
         await super().Define(hash, args, argsh)
         if len(args) < 7:
             return (
-                "Usage: define wifi_plug PythonModule tuya"
+                "Usage: define wifi_plug fhempy tuya"
                 " setup <API_KEY> <API_SECRET> <DEVICE_ID> [<REGION>=eu]<br>"
                 "OR if you want to define only one device with existing local key<br>"
                 " <PRODUCTID> <DEVICE_ID> <IP> <LOCAL_KEY> "
@@ -372,7 +372,6 @@ class tuya(FhemModule):
                 pass
             except Exception:
                 await fhem.readingsSingleUpdate(self.hash, "state", "offline", 1)
-                self.logger.error("Failed to get current status from device")
 
     def convert(self, value, schema):
         if schema["type"] == "Integer":

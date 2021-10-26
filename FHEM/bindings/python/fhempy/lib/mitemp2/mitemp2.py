@@ -1,9 +1,9 @@
 from ..core.ble import BTLEConnection
-from ..generic import FhemModule
+from .. import generic
 from .. import fhem
 
 
-class mitemp2(FhemModule):
+class mitemp2(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
 
@@ -11,7 +11,7 @@ class mitemp2(FhemModule):
     async def Define(self, hash, args, argsh):
         await super().Define(hash, args, argsh)
         if len(args) < 4:
-            return "Usage: define mitemp PythonModule mitemp2 <MAC>"
+            return "Usage: define mitemp fhempy mitemp2 <MAC>"
         self._mac = args[3]
         self.hash["MAC"] = self._mac
         self._conn = BTLEConnection(

@@ -2,6 +2,7 @@ import asyncio
 import site
 import socket
 import subprocess
+import os
 
 from fhempy.lib.generic import FhemModule
 
@@ -26,19 +27,21 @@ class esphome(FhemModule):
 
         await self.start_process()
 
-        if await fhem.AttrVal(self.hash["NAME"], "room", "") == "":
-            await fhem.CommandAttr(self.hash, hash["NAME"] + " room ESPHome")
+        if fhem.init_done(hash) == 1:
+            # create weblinks on first define
             self.create_async_task(self.create_weblink())
 
     async def start_process(self):
+        my_env = os.environ
+        my_env["PATH"] = site.getuserbase() + "/bin:" + my_env["PATH"]
         self._esphomeargs = [
             site.getuserbase() + "/bin/esphome",
-            "esphome_config/",
             "dashboard",
+            "esphome_config/",
         ]
 
         try:
-            self.proc = subprocess.Popen(self._esphomeargs)
+            self.proc = subprocess.Popen(self._esphomeargs, env=my_env)
         except Exception:
             try:
                 self._esphomeargs = ["esphome", "dashboard", "esphome_config/"]
@@ -65,6 +68,37 @@ class esphome(FhemModule):
             "esphome_dashboard htmlattr width='900' height='700' frameborder='0' marginheight='0' marginwidth='0'",
         )
         await fhem.CommandAttr(self.hash, "esphome_dashboard room ESPHome")
+        await fhem.CommandAttr(self.hash, "esphome_dashboard sortby 2")
+
+        await fhem.CommandDefine(
+            self.hash,
+            """
+esphome_installer weblink htmlCode <style>a[target="_blank"]::after {
+content: "";
+width: 1em;
+height: 1em;
+margin: 0 0.05em 0 0.1em;
+background: url(data:image/svg+xml;base64,
+PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb
+3g9IjAgMCAxNiAxNiIgd2lkdGg9IjE2IiBoZWlnaHQ9IjE2Ij48cGF0aCBkPS
+JNOSAyTDkgMyAxMi4zIDMgNiA5LjMgNi43IDEwIDEzIDMuNyAxMyA3IDE0IDc
+gMTQgMlpNNCA0QzIuOSA0IDIgNC45IDIgNkwyIDEyQzIgMTMuMSAyLjkgMTQg
+NCAxNEwxMCAxNEMxMS4xIDE0IDEyIDEzLjEgMTIgMTJMMTIgNyAxMSA4IDExI
+DEyQzExIDEyLjYgMTAuNiAxMyAxMCAxM0w0IDEzQzMuNCAxMyAzIDEyLjYgMy
+AxMkwzIDZDMyA1LjQgMy40IDUgNCA1TDggNSA5IDRaIi8+PC9zdmc+) no-repeat;
+background-size: contain;
+display: inline-block;
+vertical-align: text-bottom;
+}</style>
+<a href="https://esphome.github.io/esp-web-tools/"
+ style="font-size: 20px;" target="_blank">
+Click here to easily install ESPHome on a new devices
+</a><br><br>""".replace(
+                "\n", ""
+            ),
+        )
+        await fhem.CommandAttr(self.hash, "esphome_dashboard room ESPHome")
+        await fhem.CommandAttr(self.hash, "esphome_dashboard sortby 1")
 
     # FHEM FUNCTION
     async def Undefine(self, hash):

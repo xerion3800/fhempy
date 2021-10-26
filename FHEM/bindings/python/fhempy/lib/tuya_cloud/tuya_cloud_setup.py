@@ -61,8 +61,6 @@ class tuya_cloud_setup:
             self._ready = True
             await fhem.readingsSingleUpdate(self.hash, "state", "connected", 1)
             await self._init_devices()
-        else:
-            await fhem.readingsSingleUpdate(self.hash, "state", "failed to connect", 1)
 
     async def restart_mqtt_loop(self):
         while True:
@@ -112,7 +110,15 @@ class tuya_cloud_setup:
             )
         )
         if response.get("success", False) is False:
-            self.logger.error(f"Tuya login error response: {response}")
+            if response.get("code", 0) == 2406:
+                await fhem.readingsSingleUpdate(
+                    self.hash, "state", "Tuya project too old, create new one", 1
+                )
+            else:
+                await fhem.readingsSingleUpdate(
+                    self.hash, "state", f"failed to login: {response}", 1
+                )
+                self.logger.error(f"Tuya login error response: {response}")
             return False
 
         self.tuya_mq = TuyaOpenMQ(api)
@@ -136,7 +142,7 @@ class tuya_cloud_setup:
                 self.logger = logger
 
             def update_device(self, device: TuyaDevice):
-                self.logger.info(f"update_device received for {device.id}")
+                self.logger.debug(f"update_device received for {device.id}")
                 try:
                     for dev in t_cloud_setup.tuya_devices:
                         if dev.id == device.id:

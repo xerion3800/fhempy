@@ -4,11 +4,11 @@ import logging
 
 from .. import fhem
 from .. import utils as fpyutils
-from ..generic import FhemModule
+from .. import generic
 from .nespresso import NespressoDetect
 
 
-class nespresso_ble(FhemModule):
+class nespresso_ble(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
         self.nespressodetect = None
@@ -39,9 +39,7 @@ class nespresso_ble(FhemModule):
     async def Define(self, hash, args, argsh):
         await super().Define(hash, args, argsh)
         if len(args) < 4:
-            return (
-                "Usage: define devicename PythonModule nespresso_ble <MAC> [<AUTHKEY>]"
-            )
+            return "Usage: define devicename fhempy nespresso_ble <MAC> [<AUTHKEY>]"
         await fhem.readingsBeginUpdate(hash)
         await fhem.readingsBulkUpdateIfChanged(hash, "state", "offline")
         await fhem.readingsEndUpdate(hash, 1)

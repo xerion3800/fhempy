@@ -8,10 +8,10 @@ import typing
 from miio.click_common import DeviceGroupMeta
 
 from .. import fhem, utils
-from ..generic import FhemModule
+from .. import generic
 
 
-class miio(FhemModule):
+class miio(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
         self._set_list = {}
@@ -35,7 +35,7 @@ class miio(FhemModule):
         await super().Define(hash, args, argsh)
         self.hash = hash
         if len(args) < 6:
-            return "Usage: define miiodev PythonModule miio <TYPE> <IP> <TOKEN>"
+            return "Usage: define miiodev fhempy miio <TYPE> <IP> <TOKEN>"
         self._miio_devtype = args[3]
         self._miio_ip = args[4]
         self._miio_token = args[5]

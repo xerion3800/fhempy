@@ -1,10 +1,10 @@
 import asyncio
 
 from .. import fhem, utils
-from ..generic import FhemModule
+from .. import generic
 
 
-class helloworld(FhemModule):
+class helloworld(generic.FhemModule):
     def __init__(self, logger):
         super().__init__(logger)
 
@@ -48,7 +48,7 @@ class helloworld(FhemModule):
     async def Define(self, hash, args, argsh):
         await super().Define(hash, args, argsh)
         if len(args) > 3:
-            return "Usage: define hello_fhempy PythonModule helloworld"
+            return "Usage: define hello_fhempy fhempy helloworld"
         await fhem.readingsBeginUpdate(hash)
         await fhem.readingsBulkUpdateIfChanged(hash, "state", "on")
         await fhem.readingsEndUpdate(hash, 1)
