@@ -2,6 +2,55 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.172 (2021-11-06)
+### Fix
+* **googlecast:** Fix speak ([`5a37d57`](https://github.com/dominikkarall/fhempy/commit/5a37d57ac0ce598827598918dbe3c50d261f9cf7))
+* **skodaconnect:** Update lib to 1.1.10 ([`eb19421`](https://github.com/dominikkarall/fhempy/commit/eb19421b9ddc7c17cddb84847503fa1f5f608fcb))
+
+## v0.1.171 (2021-11-06)
+### Fix
+* **xiaomi_gateway3:** Fix z2m mode ([`14f3f5b`](https://github.com/dominikkarall/fhempy/commit/14f3f5b305e7a76bb61092819c5dc404f66e6206))
+
+## v0.1.170 (2021-11-05)
+### Fix
+* **xiaomi_gateway3:** Fix connected state ([`08005c0`](https://github.com/dominikkarall/fhempy/commit/08005c0634846aa21e9b56b977b41d24497bc288))
+
+## v0.1.169 (2021-11-05)
+### Feature
+* **xiaomi_gateway3:** Update to 1.6.0rc2 xgw3 lib ([`bcf7f8d`](https://github.com/dominikkarall/fhempy/commit/bcf7f8d9d303efadafc5f33c0166b5d38fa575c0))
+
+### Fix
+* **esphome:** Fix weblinks device ([`9e93ef0`](https://github.com/dominikkarall/fhempy/commit/9e93ef00a44e15845906196536651dd858fab87a))
+
+## v0.1.168 (2021-10-30)
+### Fix
+* **tuya_cloud:** Fix python 3.7 ([`b28cf4e`](https://github.com/dominikkarall/fhempy/commit/b28cf4e0213e9ee802c8aec94b40d1840d92ba3f))
+
+## v0.1.167 (2021-10-30)
+### Fix
+* **tuya_cloud:** Update tuya iot lib ([`3ef9f5b`](https://github.com/dominikkarall/fhempy/commit/3ef9f5bbddf53aa03d07044b881fedf069733f91))
+* **esphome:** Fix create weblinks ([`e4ec22f`](https://github.com/dominikkarall/fhempy/commit/e4ec22f6597ee96307bc1ea5de6a4d2c22f67264))
+
+## v0.1.166 (2021-10-28)
+### Fix
+* **ring:** Update test ([`cef1d64`](https://github.com/dominikkarall/fhempy/commit/cef1d643813884af75ff54e24296d56fe79aa422))
+* **ring:** Correctly stop update thread ([`cec6b74`](https://github.com/dominikkarall/fhempy/commit/cec6b746886a8991cacb95a10ec361b6f0d7085b))
+* **googlecast:** Do not stop zeroconf ([`720b007`](https://github.com/dominikkarall/fhempy/commit/720b007c81f3ff41da84485feedd7a0660e5fc5e))
+* **fhempy:** Add sentry requirement ([`0df8c52`](https://github.com/dominikkarall/fhempy/commit/0df8c522e369b225878d656a291cf22714e66157))
+
+## v0.1.165 (2021-10-28)
+### Fix
+* **xiaomi_gateway3:** Fix zigbee2mqtt ([`fd10b93`](https://github.com/dominikkarall/fhempy/commit/fd10b93e9719626add8604b913743a5bcba41694))
+
+## v0.1.164 (2021-10-27)
+### Fix
+* **xiaomi_gateway3:** Fix pairing ([`26848db`](https://github.com/dominikkarall/fhempy/commit/26848db865253f70a95851fa44621adc0e783b51))
+
+## v0.1.163 (2021-10-27)
+### Feature
+* **xiaomi_gateway3:** Support zigbee2mqtt ([`3829860`](https://github.com/dominikkarall/fhempy/commit/3829860d8cdf9ace4b181b3769579874d62eee43))
+* **xiaomi_gateway3:** Support non xiaomi zigbee ([`be74c22`](https://github.com/dominikkarall/fhempy/commit/be74c22428b890bf30650f0031eba02bd7507bc9))
+
 ## v0.1.162 (2021-10-25)
 ### Fix
 * **fhempy:** Wait max60s for fhem reply ([`1dbcf1e`](https://github.com/dominikkarall/fhempy/commit/1dbcf1e5e929815864f2791dc6407c3415b30688))

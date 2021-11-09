@@ -1,6 +1,8 @@
 # THANKS to https://github.com/AlexxIT/XiaomiGateway3 for the HASS implementation
 # which I used as a base for the FHEM implementation
 
+# current version is based on https://github.com/AlexxIT/XiaomiGateway3/tree/360c6d8ecc41f70ecf4f536e51bf379383f56200
+
 import asyncio
 import functools
 import logging
@@ -8,6 +10,7 @@ import logging
 from .. import fhem, utils
 from .. import generic
 from .core.gateway3 import GatewayEntry
+from .core.utils import update_zigbee_firmware
 
 DOMAINS = [
     "binary_sensor",
@@ -55,9 +58,36 @@ class xiaomi_gateway3(generic.FhemModule):
         self.host = args[3]
         self.token = args[4]
 
+        set_conf = {
+            "activate_zigbee2mqtt": {
+                "help": (
+                    "You need to install zigbee2mqtt aftewards<br>"
+                    "=> https://www.zigbee2mqtt.io/getting_started/running_zigbee2mqtt.html#2-installing<br>"
+                    "Set following lines in configuration.yaml<br>"
+                    " serial:<br>"
+                    "   port: tcp://GATEWAY_IP_ADDRESS:8888<br>"
+                    "   adapter: ezsp<br>"
+                    " mqtt:<br>"
+                    "   client_id: zigbee_pi<br>"
+                    "PLEASE CHECK THE LOG FILE AFTER CLICKING HERE, "
+                    "DO NOT DISCONNECT GATEWAY FROM POWER"
+                )
+            },
+            "deactivate_zigbee2mqtt": {},
+        }
+        self.set_set_config(set_conf)
+
         self.create_async_task(self.connect_gw())
 
         return ""
+
+    async def set_activate_zigbee2mqtt(self, hash, params):
+        self.create_async_task(update_zigbee_firmware(self.host, True))
+        await fhem.readingsSingleUpdateIfChanged(hash, "zigbee2mqtt", "on", 1)
+
+    async def set_deactivate_zigbee2mqtt(self, hash, params):
+        self.create_async_task(update_zigbee_firmware(self.host, False))
+        await fhem.readingsSingleUpdateIfChanged(hash, "zigbee2mqtt", "off", 1)
 
     async def register_device(self, fhempy_device, handler):
         did = fhempy_device.did
@@ -73,27 +103,35 @@ class xiaomi_gateway3(generic.FhemModule):
 
     async def connect_gw(self):
         await asyncio.sleep(0)
-        config = {"devices": {}}
         self.gw = FhempyGateway(self.logger)
-        await self.gw.create_gateway(self.hash, self.host, self.token, config)
-        # prepare domains
-        for domain in DOMAINS:
-            self.gw.add_setup(domain, self.create_device)
+        z2m = await fhem.ReadingsVal(self.hash["NAME"], "zigbee2mqtt", "off")
+        if z2m == "on":
+            await self.gw.create_gateway(self.hash, self.host, self.token, zha=True)
+        else:
+            await self.gw.create_gateway(self.hash, self.host, self.token, zha=False)
+            # prepare domains
+            for domain in DOMAINS:
+                self.gw.add_setup(domain, self.create_device)
         # start check task
         self.create_async_task(self.is_connected())
         # run gateway
         self.gw.start()
 
     async def is_connected(self):
+        last_was_connected = False
         while True:
             if await self.gw.is_connected():
-                await fhem.readingsSingleUpdateIfChanged(
-                    self.hash, "state", "connected", 1
-                )
+                if last_was_connected is False:
+                    await fhem.readingsSingleUpdateIfChanged(
+                        self.hash, "state", "connected", 1
+                    )
+                    last_was_connected = True
             else:
-                await fhem.readingsSingleUpdateIfChanged(
-                    self.hash, "state", "disconnected", 1
-                )
+                if last_was_connected is True:
+                    await fhem.readingsSingleUpdateIfChanged(
+                        self.hash, "state", "disconnected", 1
+                    )
+                    last_was_connected = False
             await asyncio.sleep(60)
 
     async def create_device(self, gw, device, type):
@@ -114,33 +152,29 @@ class xiaomi_gateway3(generic.FhemModule):
                 + " "
                 + did,
             )
-            # wait for fhem
-            await asyncio.sleep(1)
         else:
             if "init" in device and did in self.fhempy_devices:
                 if did == "lumi." + device["mac"]:
                     device["version"] = self.gw.version()
                 await self.fhempy_devices[did].initialize(device)
+        # wait for fhem
+        await asyncio.sleep(2)
 
 
 class FhempyGateway:
     def __init__(self, logger):
         self.loop = asyncio.get_event_loop()
 
-    async def create_gateway(self, hash, host, token, config):
-        self.gw = await utils.run_blocking(
-            functools.partial(GatewayEntry, host=host, token=token, options=config)
-        )
+    async def create_gateway(self, hash, host, token, **options):
+        self.gw = GatewayEntry(host=host, token=token, **options)
 
     @property
     def gateway3(self):
         return self.gw
 
     def add_setup(self, domain, handler):
-        def setup(gw, device, attr):
-            asyncio.run_coroutine_threadsafe(
-                handler(gw, device, attr), self.loop
-            ).result()
+        async def setup(gw, device, attr):
+            await handler(gw, device, attr)
 
         self.gw.add_setup(domain, setup)
 
@@ -148,7 +182,7 @@ class FhempyGateway:
         return self.gw.ver
 
     def start(self):
-        utils.run_blocking_task(functools.partial(self.gw.start))
+        self.gw.start()
 
     async def is_connected(self):
-        return await utils.run_blocking(functools.partial(self.gw._check_port, 23))
+        return await self.gw.check_port(23)

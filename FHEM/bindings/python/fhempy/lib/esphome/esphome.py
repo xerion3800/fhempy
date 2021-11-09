@@ -27,7 +27,7 @@ class esphome(FhemModule):
 
         await self.start_process()
 
-        if fhem.init_done(hash) == 1:
+        if await fhem.init_done(hash) == 1:
             # create weblinks on first define
             self.create_async_task(self.create_weblink())
 
@@ -73,8 +73,8 @@ class esphome(FhemModule):
         await fhem.CommandDefine(
             self.hash,
             """
-esphome_installer weblink htmlCode <style>a[target="_blank"]::after {
-content: "";
+esphome_installer weblink htmlCode <style>a[target='_blank']::after {
+content: '';
 width: 1em;
 height: 1em;
 margin: 0 0.05em 0 0.1em;
@@ -90,8 +90,8 @@ background-size: contain;
 display: inline-block;
 vertical-align: text-bottom;
 }</style>
-<a href="https://esphome.github.io/esp-web-tools/"
- style="font-size: 20px;" target="_blank">
+<a href='https://esphome.github.io/esp-web-tools/'
+ style='font-size: 20px;' target='_blank'>
 Click here to easily install ESPHome on a new devices
 </a><br><br>""".replace(
                 "\n", ""
