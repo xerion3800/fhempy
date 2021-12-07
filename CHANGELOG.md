@@ -2,6 +2,78 @@
 
 <!--next-version-placeholder-->
 
+## v0.1.187 (2021-12-05)
+### Fix
+* **fhempy:** Fix CoProcess error ([`397edde`](https://github.com/dominikkarall/fhempy/commit/397edde0b39d52b0175454c2fd071b5ce8b2e973))
+
+## v0.1.186 (2021-12-05)
+### Feature
+* **fhempy:** Support "all" notification in ble ([`ea1f5eb`](https://github.com/dominikkarall/fhempy/commit/ea1f5ebb0d40f5b3efdde39e04d38fd1350a8302))
+
+### Fix
+* **mitemp2:** Try to fix mitemp2 ([`ba558c0`](https://github.com/dominikkarall/fhempy/commit/ba558c07a56841c998166709447902e6fb671fa7))
+
+## v0.1.185 (2021-12-03)
+### Fix
+* **eq3bt:** WindowOpenTemp starts at 5 degrees ([`3ef7e36`](https://github.com/dominikkarall/fhempy/commit/3ef7e36bdfe2b90cd5f9780ac390decb5d0a3775))
+
+## v0.1.184 (2021-12-01)
+### Fix
+* **eq3bt:** Fix windowOpenTime/Temp ([`47ad1d2`](https://github.com/dominikkarall/fhempy/commit/47ad1d2c24fb50dba7f1f1ed09041eb4375ac56e))
+
+## v0.1.183 (2021-11-30)
+### Fix
+* **tuya_cloud:** Fix AuthType ([`777edc0`](https://github.com/dominikkarall/fhempy/commit/777edc0327b71e424864f9478e0fbc2564ac51f2))
+
+## v0.1.182 (2021-11-30)
+### Fix
+* **tuya_cloud:** Support python 3.7 again ([`b54b5b8`](https://github.com/dominikkarall/fhempy/commit/b54b5b82683d177691df0a7c0c3bb85ab9670f38))
+* **fhempy:** Clarify peer installation ([`9d9a5d3`](https://github.com/dominikkarall/fhempy/commit/9d9a5d3415afd500948f4043ae02847245998d8f))
+
+## v0.1.181 (2021-11-29)
+### Fix
+* **tuya_cloud:** Remove update API calls ([`2aac25c`](https://github.com/dominikkarall/fhempy/commit/2aac25c2426850ee0fa3d419b5eff9e4474b150a))
+* **googlecast:** Update lib to 10.1.1 ([`334d171`](https://github.com/dominikkarall/fhempy/commit/334d171f3ead33f6b108bd519d0e5d01a2577779))
+
+## v0.1.180 (2021-11-28)
+### Fix
+* **esphome:** Fix esphome_installer device ([`7b0d925`](https://github.com/dominikkarall/fhempy/commit/7b0d92581d0700e295164e125a909687f97dfd2f))
+* **fhempy:** Link to github releases ([`7e3f326`](https://github.com/dominikkarall/fhempy/commit/7e3f326b3f8cf34728510ada4d2bffc07b6408a4))
+
+## v0.1.179 (2021-11-28)
+### Fix
+* **tuya_cloud:** Fix typo ([`e7b8b62`](https://github.com/dominikkarall/fhempy/commit/e7b8b62c1acf7cc65de83c8cd8688e4c0808fa05))
+* **tuya_cloud:** Retrieve status every 900s ([`c085381`](https://github.com/dominikkarall/fhempy/commit/c085381fe00d1087feba2afd1a44dea88b0b5e3b))
+* **tuya_cloud:** Better error handling ([`0d94229`](https://github.com/dominikkarall/fhempy/commit/0d94229f70039e7b650462101fd3940c8cb26e95))
+
+## v0.1.178 (2021-11-27)
+### Fix
+* **tuya_cloud:** Update lib to 0.6.3 (python>=3.8) ([`d2448d7`](https://github.com/dominikkarall/fhempy/commit/d2448d764ece18b4387420216e86b83f15adb495))
+
+## v0.1.177 (2021-11-26)
+### Fix
+* **esphome:** Fix checkIfDeviceExists ([`2b67d7d`](https://github.com/dominikkarall/fhempy/commit/2b67d7d6dbfc14e1e800dcdd957f5d7a0355bfbd))
+* **fhempy:** Fix dbus dependency ([`09c5717`](https://github.com/dominikkarall/fhempy/commit/09c5717cee2fd8aa13c911ca5466d1a50dba7f6d))
+
+## v0.1.176 (2021-11-26)
+### Fix
+* **esphome:** Fix attr sortby on restart ([`a605adf`](https://github.com/dominikkarall/fhempy/commit/a605adfe0c0704f3e04db94fbb4d59697a4bef3f))
+* **tuya_cloud:** Change lib to 0.4.1 ([`8ef2e9f`](https://github.com/dominikkarall/fhempy/commit/8ef2e9f03c64bb0ef69ab6e14aaddd73806251b0))
+
+## v0.1.175 (2021-11-21)
+### Fix
+* **googlecast:** Update lib and change discovery ([`13f02e1`](https://github.com/dominikkarall/fhempy/commit/13f02e1eeba09a4f6f61452727b5a4f3825c64fd))
+
+## v0.1.174 (2021-11-15)
+
+
+## v0.1.173 (2021-11-15)
+### Fix
+* **tuya_cloud:** Fix colour_data ([`d2fd1ac`](https://github.com/dominikkarall/fhempy/commit/d2fd1ac0b56540ff589c234489416e95f1973fc4))
+* **fhempy:** Update zeroconf 0.36.12 ([`768df9e`](https://github.com/dominikkarall/fhempy/commit/768df9e8a27d0ac06b1f8e7ccd95ff01a7ec34f5))
+* **googlecast:** Update lib to 9.4.0 ([`82a1d6b`](https://github.com/dominikkarall/fhempy/commit/82a1d6b8431343d4d5ed1a1c9dd8c07de2ac2e28))
+* **tuya_cloud:** Fix pow() bug ([`275ef99`](https://github.com/dominikkarall/fhempy/commit/275ef996e953cf65224af85d606d517db07cc8b3))
+
 ## v0.1.172 (2021-11-06)
 ### Fix
 * **googlecast:** Fix speak ([`5a37d57`](https://github.com/dominikkarall/fhempy/commit/5a37d57ac0ce598827598918dbe3c50d261f9cf7))

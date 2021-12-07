@@ -58,6 +58,11 @@ class esphome(FhemModule):
         await fhem.readingsSingleUpdate(self.hash, "state", "stopped", 1)
 
     async def create_weblink(self):
+        if await fhem.checkIfDeviceExists(
+            self.hash, "TYPE", "weblink", "NAME", "esphome_dashboard"
+        ):
+            return
+
         hostname = socket.gethostname()
         local_ip = socket.gethostbyname(hostname)
         await fhem.CommandDefine(
@@ -97,8 +102,8 @@ Click here to easily install ESPHome on a new devices
                 "\n", ""
             ),
         )
-        await fhem.CommandAttr(self.hash, "esphome_dashboard room ESPHome")
-        await fhem.CommandAttr(self.hash, "esphome_dashboard sortby 1")
+        await fhem.CommandAttr(self.hash, "esphome_installer room ESPHome")
+        await fhem.CommandAttr(self.hash, "esphome_installer sortby 1")
 
     # FHEM FUNCTION
     async def Undefine(self, hash):
